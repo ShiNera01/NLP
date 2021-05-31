@@ -45,4 +45,162 @@
       ex) 192.168...과 같은 ip주소  ph.D 등
       
       
+      from nltk.tokenize import sent_tokenize
+      text = " "
+      print(sent_tokenize(text))
+      
+      
+   5. 이진 분류기 (Binary Classifier)
+     - 문장 토큰화에서의 예외 사항을 발생시키는 마침표 처리를 위해서 입력에 따라 두 개의 클래스로 분류하는 이진 분류기 사용
+     
+      1) 마침표가 단어의 일부분일 경우.
+      2) 마침표가 문장의 구분자로 사용될 경우
+      
+      
+      
+      
+      
+      
+2) 정제(Cleaning)와 정규화(Normalization)
+    정제 : 갖고 있는 코퍼스로부터 노이즈 데이터 제거
+    정규화 : 표현 방법이 다른 단어들을 통합시켜 같은 단어로 만드는 것
     
+   1. 규칙에 기반한 표기가 다른 단어들의 통합
+    - USA와 US는 같은 의미
+    
+   2. 대,소문자 통합
+    - 대부분의 글은 소문자로 작성되어서, 대문자를 소문자로 변환하는 작업
+    - 대,소문자가 구분되어야 하는 경우도 존재 US(미국), us(우리) 구분 되어야함. 회사 이름, 사람 이름등은 대문자로 유지되어야 한다.
+  
+   3. 불필요한 단어 제거(Removing Unncessary Words)
+    - 정제 작업에서는 아무 의미도 갖지 않는 글자들 뿐만 아니라, 분석하고자 하는 목적에 맞지 않는 단어들 역시도 노이즈 데이터라고 정의한다.
+    - 불필요 단어들을 제거하는 방법으로는 불용어 제거와 등장 빈도가 적은 단어, 짧은 단어들을 제거하는 방법
+    
+      1)등장 빈도가 적은 단어 (Removing Rare words)
+      2)길이가 짧은 단어 (Removing words with very a short length)
+        - 길이가 2,3인 단어들을 제거함으로써 의미 없는 단어를 줄이는 효과
+          ex) import re
+              text = ""
+              shortword = re.compiler(r'|w*|b|w{1,2}|b')
+              print(shortword.sub('',text))
+              
+    4. 정규 표현식(Regular Expression)
+    
+    
+    
+    
+    
+    
+ 3) 어간 추출(Stemming) and 표제어 추출(Lemmatization)
+    
+    1. 표제어 추출
+      - 단어들로부터 표제어를 찾아가는 것
+      - am, are, is는 뿌리 단어인 be에서 비롯되고 표제어는 be
+      
+      - 의미를 가진 최소의 단위  형태소는 두가지 종류
+        1) 어간 (stem) : 단어의 의미를 담고 있는 단어의 핵심
+        2) 접사 (affix) : 단어의 추가적인 의미
+      - 형태학적인 파싱은 이 두가지 구성 요소를 분리 하는 작업
+      
+      ex) import nltk
+      n = nltk.stem.WordNetLemmatizer()
+      words = ["hi","hello","love","lives","animal","is"]
+      print([n.lemmatize(i) for i in words])
+      
+      ['hi', 'hello', 'love', 'life', 'animal', 'is']
+        
+      - WordNetLemmatizer는 입력으로 단어가 동사 품사라는 것을 알려줄 수 있다.
+      ex) n.lemmatize('dies', 'v')
+        -> 'die'
+          n.lemmatize('watched', 'v')
+         -> 'watch'
+         
+    2. 어간 추출
+      - 어간을 추출하는 작업
+        ex) from nltk.stem import PorterStemmer
+            from nltk.tokenize import word_tokenize
+            s = PorterStemmer()
+            
+            text = " "
+            words = word_tokenize(text)
+            print(words)
+            print([s.stem(i) for i in words])
+            
+            포터 알고리즘에서 어간 추출에 대한 규정해놓은 규칙대로 어간이 추출된다.
+            
+        
+  4) 불용어(Stopword)
+    - 자주 등장하지만 분석에 있어서 큰 도움이 되지 않는 것
+      ex) I,my,me,over, 조사, 접미사 등 = stopword 
+    - nltk에서 백여개 이상의 영어 단어들을 패키지로 제공
+    
+    
+    1. NLTK
+      from nltk.corpus import stopwords
+      stopwords.words('english')  #nltk에서 정의 해놓은 영어 불용어 리스트 반환
+      
+      
+    2. NLTK 이용해 불용어 제거
+      from nltk.corpus import stopwords
+      from nltk.tokenize import word_tokenize
+      
+      text = "Family is not an important thing. It`s everything."
+      stop_words = set(stopwords.words('english'))
+      word_tokens = word_tokenize(text)
+      
+      result = []
+      for i in word_tokens:
+        if i not in stop_words:
+          result.append(i)
+          
+    3. 한국어 불용어 제거
+      - 직접 불용어 정의하여 제거
+      from nltk.corpus import stopwords
+      from nltk.tokenize import word_tokenize
+      
+      text = "고기를 아무렇게나 구우려고 하면 안 돼. 고기라고 다 같은 게 아니거든. 예컨대 삼겹살을 구울 때는 중요한 게 있지."
+      stop_words = "아무거나 아무렇게나 어찌하든지 같다 비슷하다 예컨대 이럴정도로 하면 아니거든"
+      
+      stop_words = stop_words.split(' ')
+      word_tokens = word_tokenize(text)
+      
+      result = []
+      for i in word_tokens:
+        if i not in stop_words:
+          result.append(i)
+  5) 정규 표현식 (Regular Expression)
+    
+    1. 정규 표현식 문법과 모듈 함수
+      . : 한 개의 임의의 문자를 나타낸다.
+      ? : 앞의 문자가 존재할 수도 있고, 존재하지 않을 수도 있다. (문자 0 or 1개)
+      * : 앞의 문자가 무한개로 존재할 수도 있고, 존재 하지 않을 수도 있다. (문자 0개 이상)
+      + : 앞의 문자가 최소 한 개 이상
+      ^ : 뒤의 문자로 문자열이 시작된다
+      $ : 앞의 문자로 문자열이 끝남
+      {숫자} : 숫자만큼 반복
+      {숫자1, 숫자2} 숫자1 이상 숫자2 이하만큼 반복
+      {숫자,} 숫자 이상만큼 반복
+      [] : 대괄호 안의 문자중 한 개의 문자와 매치 
+        ex) [amk] a or m or k 중 하나라도 존재하면 매칭 되는 것으로 간주
+            [a-zA-Z] 알파벳 전체 범위
+      [^문자] 해당 문자를 제외한 문자 매치
+      |   A|B : A 또는 B의 의미
+      
+      | : 역 슬래쉬 문자 자체 의미
+      |d : 모든 숫자를 의미  [0-9]와 같음
+      |D : 숫자를 제외한 모든 문자 의미 [^0-9]와 같음
+      |s : 공백을 의미 [|t|n|r|f|v]와 같음
+      |S : 공백을 제외한 문자 의미 [^|t|n|r|f|v]와 같음
+      |w : 문자 또는 숫자를 의미. [a-zA-Z0-9]와 같음
+      |W : 문자 또는 숫자가 아닌 문자 [^a-zA-Z0-9]와 같음
+      
+      
+      re.compile() : 정규표현식을 컴파일하는 함수.
+      re.search() : 문자열 전체에 대해 정규표현식과 매치되는지 검색
+      re.match() : 문자열의 처음이 정규표현식과 매치되는지 검색
+      re.split() : 정규 표현식을 기준으로 문자열을 분리하여 리스트로 리턴
+      re.findall() : 문자열에서 정규 표현식과 매치되는 모든 경우의 문자열을 찾아서 리스트로 리턴. 매치되는 문자열 없으면 빈 리스트가 리턴
+      re..finditer() : 문자열에서 정규 표현식과 매치되느 ㄴ모든 경우의 문자열에 대한 이터레이터 객체를 리턴
+      re.sub() : 문자열에서 정규표현식과 일치하는 부분에 대해 다른 문자열로 대체
+      
+      
