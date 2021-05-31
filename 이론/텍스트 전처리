@@ -1,0 +1,48 @@
+- 용도에 맞게 텍스트를 사전에 처리하는 작업
+
+
+1) 토큰화 (Tokenization)
+  - 주어진 코퍼스(corpus)에서 토큰(token)이라 불리는 단위로 나누는 작업을 토큰화(tokenization)라고 부른다. 
+  
+  
+  1. 단어 토큰화 (word tokenization)
+    - 토큰의 기준을 단어(word)로 하는 경우, 단어구, 의미를 갖는 문자열로 간주하기도 함
+    
+    구두점(punctuation)과 같은 문자 제외 시키는 간단한 토큰화 작업
+    input : Time is an illusion. Lunchtime!
+    output : "Time", "is", "an", "illusion", "Lunchtime"
+    
+    해당 입력값에 구두점을 지운 뒤 띄어쓰기 기준으로 잘라냄.
+    
+    토큰화 작업은 단순히 구두점이나 특수문자를 전부 제거하는 정제(cleaning) 작업 수행만으로 해결 불가능. 전부 제거 하는 경우 토큰의 의미를 잃어 버리는 경우 발생.
+    
+  2. from nltk.tokenize import word_tokenize
+    - word_tokenize는 어퍼스트로피 Don`t  - > "Do", "n't"로 분리  Jone`s -> "Jone", "'s" 로 분리
+     from nltk.tokenize import WordPunctTokenizer
+    - wordPunctTokenizerDon`t  -> "Don", "'","t"로 분리   Jone's -> "Jone", "'", "s"로 분리
+    
+    케라스 토큰화
+    - from tensorflow.keras.preprocessing.text import text_to_word_sequence
+    모든 알파벳을 소문자로 바꾸고 마침표나 콤마, 느낌표 등의 구두점 모두 제거 don`t나 jone`s와 같은 어퍼스트로피는 보존
+    
+    
+  3. 고려사항
+    - 구두점이나 특수 문자를 단순 제외해서는 안된다.
+    - 줄임말과 단어 내의 띄어쓰기가 있는 경우
+    - 표준 토큰화 예제
+       rule_1 : 하이푼으로 구성된 단어는 하나로 유지
+       rule_2 : doesn't와 같이 어퍼스트로피 '접어'가 함께하는 단어는 분리해준다.
+       
+       from nltk.tokenize import TreebankWordTokenizer
+       tokenizer = TreebankWordTokenizer()
+       
+       home-based는 하나의 토큰으로 취급 doesn`t의 경우 does와 n`t는 분리되었다.
+       
+       
+   4. 문장 토큰화(Sequence Tokenization)
+    - 코퍼스 내에서 문장 단위로 구분하는 작업으로 문장 분류 (sentence segmentation)라고도 함.
+    - ?나 !는 문장의 명확한 구분자 역할 하지만 마침표(.)는 끝이 아니더라도 등장할 가능성 존재
+      ex) 192.168...과 같은 ip주소  ph.D 등
+      
+      
+    
