@@ -204,3 +204,384 @@
       re.sub() : 문자열에서 정규표현식과 일치하는 부분에 대해 다른 문자열로 대체
       
       
+      re.match() and re.search()
+      search()는 전체에 대해 문자열이 매치하는지 확인, match() 문자열의 첫 부분부터 정규 표현식과 매치되는지 확인
+      
+      re.split()
+      re.split(" ", text) 공백을 기준으로 문자열 분리
+      
+      re.findall("\d+", text) 전체 텍스트에서 숫자만 찾아내서 리스트로 리턴
+      
+      re.sub()
+      ex) re.sub('[^a-zA-Z]',' ',text) 특수 문자를 제거하고 공백으로 처리
+      
+      
+6) 정수 인코딩
+  - 각 단어를 정수에 맵핑
+  1.정수 인코딩
+    1) dictionary
+        from nltk.tokenize import sent_tokenize
+        from nltk.tokenize import word_tokenize
+        from nltk.corpus import stopwords
+
+        text = "Recommender systems are used in a variety of areas, with commonly recognised examples taking the form of playlist generators for video and music services, product recommenders for online stores, or content recommenders for social media platforms and open web content recommenders."
+        text = sent_tokenize(text)
+        vocab = {}
+        sentences = []
+        stop_words = set(stopwords.words("english"))
+
+        for i in text:
+            sentences = word_tokenize(i)
+            result = []
+
+            for word in sentences:
+                word = word.lower()
+                if word not in stop_words:
+                    if len(word) > 2:
+                        result.append(word)
+                        if word not in vocab:
+                            vocab[word] = 0
+                        vocab[word] += 1
+            sentences.append(result)
+        print(sentences)
+        ['Recommender systems are used in a variety of areas, with commonly recognised examples taking the form of playlist generators for video and music services, product recommenders for online stores, or content recommenders for social media platforms and open web content recommenders.']
+
+        print(vocab)
+        {'recommender': 1, 'systems': 1, 'used': 1, 'variety': 1, 'areas': 1, 'commonly': 1, 'recognised': 1, 'examples': 1, 'taking': 1, 'form': 1, 'playlist': 1, 'generators': 1, 'video': 1, 'music': 1, 'services': 1, 'product': 1, 'recommenders': 3, 'online': 1, 'stores': 1, 'content': 2, 'social': 1, 'media': 1, 'platforms': 1, 'open': 1, 'web': 1}    
+
+        vocab_sorted = sorted(vocab.items(), key = lambda x:x[1], reverse = True)
+        print(vocab_sorted)
+        [('recommenders', 3), ('content', 2), ('recommender', 1), ('systems', 1), ('used', 1), ('variety', 1), ('areas', 1), ('commonly', 1), ('recognised', 1), ('examples', 1), ('taking', 1), ('form', 1), ('playlist', 1), ('generators', 1), ('video', 1), ('music', 1), ('services', 1), ('product', 1), ('online', 1), ('stores', 1), ('social', 1), ('media', 1), ('platforms', 1), ('open', 1), ('web', 1)]
+
+
+
+        word_to_index = {}
+        index = 0
+        for (word, frequency) in vocab_sorted:
+            if frequency > 1:
+                index = index + 1
+                word_to_index[word] = index
+        print(word_to_index)
+
+        가장 빈도수가 높은 순으로 빈도수 1인 단어 전부 제외.
+
+        vocab_size = 5
+        words_frequency = [i for i,c in word_to_index.items() if c >= vocab_size + 1]
+        for i in words_frequency:
+            del word_to_index[i]
+        print(word_to_index)
+
+        {'recommenders': 1, 'content': 2}
+
+        word_to_index 빈도수가 높은 상위 5개의 단어 저장.
+        각 단어는 정수로 인코딩 됨. 단어 집합에 존재 하지 않는 단어들을 Out-of-vocabulary = 'OOV'
+
+
+     2) Counter
+      - words = np.hstack(sentences)
+        print(words)
+        ['Recommender' 'systems' 'are' 'used' 'in' 'a' 'variety' 'of' 'areas' ','
+         'with' 'commonly' 'recognised' 'examples' 'taking' 'the' 'form' 'of'
+         'playlist' 'generators' 'for' 'video' 'and' 'music' 'services' ','
+         'product' 'recommenders' 'for' 'online' 'stores' ',' 'or' 'content'
+         'recommenders' 'for' 'social' 'media' 'platforms' 'and' 'open' 'web'
+         'content' 'recommenders' '.' 'recommender' 'systems' 'used' 'variety'
+         'areas' 'commonly' 'recognised' 'examples' 'taking' 'form' 'playlist'
+         'generators' 'video' 'music' 'services' 'product' 'recommenders' 'online'
+         'stores' 'content' 'recommenders' 'social' 'media' 'platforms' 'open'
+         'web' 'content' 'recommenders']
+
+       vocab = Counter(words)
+       print(vocab)
+
+       Counter({'recommenders': 6, 'content': 4, ',': 3, 'for': 3, 'systems': 2, 'used': 2, 'variety': 2, 'of': 2, 'areas': 2, 'commonly': 2, 'recognised': 2, 'examples': 2, 'taking': 2, 'form': 2, 'playlist': 2, 'generators': 2, 'video': 2, 'and': 2, 'music': 2, 'services': 2, 'product': 2, 'online': 2, 'stores': 2, 'social': 2, 'media': 2, 'platforms': 2, 'open': 2, 'web': 2, 'Recommender': 1, 'are': 1, 'in': 1, 'a': 1, 'with': 1, 'the': 1, 'or': 1, '.': 1, 'recommender': 1})
+
+
+     3) FreqDist
+      from nltk import FreqDist
+      import numpy as np
+
+      vocab = FreqDist(np.hstack(sentences))
+      print(vocab["recommenders"])
+      6
+
+      vocab = vocab.most_common(5) #등장 빈도수가 높은 상위 5개의 단어 저장
+
+    4) enumerate
+      enumerate()는 순서가 있는 자료형을 입력으로 받아 인덱스를 순차적으로 함께 리턴
+
+      test = ['a','b','c','d','e']
+      for index, value in enumerate(test):
+      print("value : {}, index : {}".format(value, index))
+
+      value : a, index : 0
+      value : b, index : 1
+      value : c, index : 2
+      value : d, index : 3
+      value : e, index : 4
+
+
+  2. 케라스의 텍스트 전처리
+  
+     from tensorflow.keras.preprocessing.text import Tokenizer
+     
+     tokenizer = Tokenizer()
+     tokenizer.fit_on_texts(sentences) # fit_on_texts()안에 코퍼스를 입력으로 하면 빈도수를 기준으로 단어 집합 생성
+     print(tokenizer.word_index)
+     {'recommenders': 1, 'content': 2, 'for': 3, 'recommender': 4, 'systems': 5, 'used': 6, 'variety': 7, 'of': 8, 'areas': 9, 'commonly': 10, 'recognised': 11, 'examples': 12, 'taking': 13, 'form': 14, 'playlist': 15, 'generators': 16, 'video': 17, 'and': 18, 'music': 19, 'services': 20, 'product': 21, 'online': 22, 'stores': 23, 'social': 24, 'media': 25, 'platforms': 26, 'open': 27, 'web': 28, 'are': 29, 'in': 30, 'a': 31, 'with': 32, 'the': 33, 'or': 34}
+     print(tokenizer.word_counts)
+     OrderedDict([('recommender', 2), ('systems', 2), ('are', 1), ('used', 2), ('in', 1), ('a', 1), ('variety', 2), ('of', 2), ('areas', 2), ('with', 1), ('commonly', 2), ('recognised', 2), ('examples', 2), ('taking', 2), ('the', 1), ('form', 2), ('playlist', 2), ('generators', 2), ('for', 3), ('video', 2), ('and', 2), ('music', 2), ('services', 2), ('product', 2), ('recommenders', 6), ('online', 2), ('stores', 2), ('or', 1), ('content', 4), ('social', 2), ('media', 2), ('platforms', 2), ('open', 2), ('web', 2)])
+     print(tokenizer.texts_to_sequences(sentences)) #입력으로 들어온 코퍼스에 대해 정해진 인덱스로 변환
+     [[4], [5], [29], [6], [30], [31], [7], [8], [9], [], [32], [10], [11], [12], [13], [33], [14], [8], [15], [16], [3], [17], [18], [19], [20], [], [21], [1], [3], [22], [23], [], [34], [2], [1], [3], [24], [25], [26], [18], [27], [28], [2], [1], [], [4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19, 20, 21, 1, 22, 23, 2, 1, 24, 25, 26, 27, 28, 2, 1]]
+     
+     tokenizer = Tokenizer(num_words = 숫자) 상위 수의 단어만 사용하겠다고 지정
+     vocab_size = 5
+     tokenizer = Tokenizer(num_words = vocab_size + 2, oov_token = 'OOV') # 빈도수 상위 5개 단어 사용, 0과 OOV 고려해서 단어 집합 크기 + 2
+     tokenizer.fit_on_texts(sentences)
+     
+     print('단어 OOV의 인덱스 : {}'.format(tokenizer.word_index['OOV']))
+     
+     케라스 토크나이저는 기본적으로 'OOV'의 인덱스를 1로 사용
+     
+7) 패딩
+  - 여러 문장의 길이를 임의로 동일하게 맞춰주는 작업
+    
+    from tensorflow.keras.preprocessing.texdt import Tokenizer()
+    sentences = [['barber', 'person'], ['barber', 'good', 'person'], ['barber', 'huge', 'person'], ['knew', 'secret'], ['secret', 'kept', 'huge', 'secret'], ['huge', 'secret'], ['barber', 'kept', 'word'], ['barber', 'kept', 'word'], ['barber', 'kept', 'secret'], ['keeping', 'keeping', 'huge', 'secret', 'driving', 'barber', 'crazy'], ['barber', 'went', 'huge', 'mountain']]
+    tokenizer = Tokenizer()
+    tokenizer.fit_on_texts(sentences)  #빈도수를 기준으로 단어 집합 생성
+    encoded = tokenizer.texts_to_sequences(sentences)
+    print(encoded)
+    [[1, 5], [1, 8, 5], [1, 3, 5], [9, 2], [2, 4, 3, 2], [3, 2], [1, 4, 6], [1, 4, 6], [1, 4, 2], [7, 7, 3, 2, 10, 1, 11], [1, 12, 3, 13]]
+    max_len = max(len(item)) for item in encoded)
+    print(max_len) #7
+    
+    가장 길이가 긴 문장의 길이는 7. 모든 문장의 길이 7로 변환
+    
+    for item in encoded:
+      while len(item) < max_len:
+        item.append(0)
+        
+    padded_np = np.array(encoded)
+    padded_np
+    
+    array([[ 1,  5,  0,  0,  0,  0,  0],
+       [ 1,  8,  5,  0,  0,  0,  0],
+       [ 1,  3,  5,  0,  0,  0,  0],
+       [ 9,  2,  0,  0,  0,  0,  0],
+       [ 2,  4,  3,  2,  0,  0,  0],
+       [ 3,  2,  0,  0,  0,  0,  0],
+       [ 1,  4,  6,  0,  0,  0,  0],
+       [ 1,  4,  6,  0,  0,  0,  0],
+       [ 1,  4,  2,  0,  0,  0,  0],
+       [ 7,  7,  3,  2, 10,  1, 11],
+       [ 1, 12,  3, 13,  0,  0,  0]])
+       
+       
+     
+    케라스 전처리 도구 패딩
+      from tensorflow.keras.preprocessing.sequence import pad_sequences
+      
+      encoded = tokenizer.texts_to_sequences(sentences)
+      print(encoded)
+      [[1, 5], [1, 8, 5], [1, 3, 5], [9, 2], [2, 4, 3, 2], [3, 2], [1, 4, 6], [1, 4, 6], [1, 4, 2], [7, 7, 3, 2, 10, 1, 11], [1, 12, 3, 13]]
+      
+      padded = pad_sequences(encoded)
+      padded
+      
+      array([[ 0,  0,  0,  0,  0,  1,  5],
+       [ 0,  0,  0,  0,  1,  8,  5],
+       [ 0,  0,  0,  0,  1,  3,  5],
+       [ 0,  0,  0,  0,  0,  9,  2],
+       [ 0,  0,  0,  2,  4,  3,  2],
+       [ 0,  0,  0,  0,  0,  3,  2],
+       [ 0,  0,  0,  0,  1,  4,  6],
+       [ 0,  0,  0,  0,  1,  4,  6],
+       [ 0,  0,  0,  0,  1,  4,  2],
+       [ 7,  7,  3,  2, 10,  1, 11],
+       [ 0,  0,  0,  1, 12,  3, 13]])
+       
+       padded = pad_sequences(encoded, padding = 'post')
+       
+       array([[ 1,  5,  0,  0,  0,  0,  0],
+       [ 1,  8,  5,  0,  0,  0,  0],
+       [ 1,  3,  5,  0,  0,  0,  0],
+       [ 9,  2,  0,  0,  0,  0,  0],
+       [ 2,  4,  3,  2,  0,  0,  0],
+       [ 3,  2,  0,  0,  0,  0,  0],
+       [ 1,  4,  6,  0,  0,  0,  0],
+       [ 1,  4,  6,  0,  0,  0,  0],
+       [ 1,  4,  2,  0,  0,  0,  0],
+       [ 7,  7,  3,  2, 10,  1, 11],
+       [ 1, 12,  3, 13,  0,  0,  0]])
+       
+       (padded == padded_np).all()  #결과가 동일한지 비교
+       
+       padded = pad_sequences(encoded, padding = 'post', maxlen = 5)  # 길이 제한 길이가 5보다 짧으면 0으로 패딩 5보다 길면 데이터 손실
+       
+       last_value = len(tokenizer.word_index) + 1 #단어 집합의 크기보다 1 큰 숫자 이용
+       print(last_value) #14  현재 단어가 총 13개
+
+
+      padded =pad_sequences(encoded, padding = 'post', value = last_value)
+      padded                     # 0 이 아닌 last_value로 패딩
+     
+      array([[ 1,  5, 14, 14, 14, 14, 14],
+       [ 1,  8,  5, 14, 14, 14, 14],
+       [ 1,  3,  5, 14, 14, 14, 14],
+       [ 9,  2, 14, 14, 14, 14, 14],
+       [ 2,  4,  3,  2, 14, 14, 14],
+       [ 3,  2, 14, 14, 14, 14, 14],
+       [ 1,  4,  6, 14, 14, 14, 14],
+       [ 1,  4,  6, 14, 14, 14, 14],
+       [ 1,  4,  2, 14, 14, 14, 14],
+       [ 7,  7,  3,  2, 10,  1, 11],
+       [ 1, 12,  3, 13, 14, 14, 14]])
+       
+       
+       
+8) 원 핫 인코딩
+  1. 원 핫 인코딩
+    - 단어 집합의 크기를 벡터 차원으로 하고 , 표현하고 싶은 단어의 인덱스에 1의 값을 부여, 다른 인덱스에 0을 부여하는 벡터 표현 방식
+     (원-핫 벡터)
+     
+     (1) 각 단어에 고유한 인덱스 부여 (정수 인코딩)
+     (2) 표현하고 싶은 단어의 인덱스의 위치에 1을 부여하고, 다른 단어 인덱스의 위치에는 0을 부여
+     
+   2. 케라스 원 핫 인코딩
+    - from tensorflow.keras.preprocessing.text import Tokenizer
+      from tensorflow.keras.utils import to_categorical
+      
+      text = "나랑 점심 먹으러 갈래 점심 메뉴는 햄버거 갈래 햄버거 최고야"
+      
+      t = Tokenizer()
+      t.fit_on_texts([text])
+      print(t.word_index)
+      {'점심': 1, '갈래': 2, '햄버거': 3, '나랑': 4, '먹으러': 5, '메뉴는': 6, '최고야': 7}
+      
+      sub_text = "점심 먹으러 갈래 메뉴는 햄버거 최고야"
+      encoded = t.texts_to_sequences([sub_text])[0]
+      print(encoded) #[2, 5, 1, 6, 3, 7]
+      
+      one_hot = to_categorical(encoded)  #원 핫 인코딩 수행
+      print(one_hot)
+      
+   3. 원 핫 인코딩의 한계
+      - 단어의 개수가 늘어날 수록, 벡터를 저장하기 위한 필요 공간이 증가하는 단점이 있다. 또한 단어의 유사도 표현하지 못함
+      
+   
+   
+9) 데이터의 분리
+  
+  1. 지도 학습 (supervised Learning)
+    - 지도 학습의 훈련 데이터는 정답이 적혀있는 레이블 데이터와 문제 데이터 같이 구성되어 있다.
+    
+  2. x와 y분리하기
+    1) zip 함수 이용하여 분리
+       - zip()함수는 동일한 개수를 가지는 시퀀스 자료형에서 각 순서에 등장하는 원소들끼리 묶어주는 역할
+       X,y = zip(['a', 1], ['b', 2], ['c', 3])
+       print(X) # ('a','b','c')
+       print(y) # (1 ,2 ,3)
+     
+    2) 데이터프레임을 이용하여 분리
+      import pandas as pd
+      
+      values = [['당신에게 드리는 마지막 혜택!', 1],
+      ['내일 뵐 수 있을지 확인 부탁드...', 0],
+      ['도연씨. 잘 지내시죠? 오랜만입...', 0],
+      ['(광고) AI로 주가를 예측할 수 있다!', 1]]
+      columns = ['메일 본문', '스팸 메일 유무']
+      
+      df = pd.DataFrame(values, columns = columns)
+      df
+      
+      
+      	          메일 본문	스팸 메일 유무
+        0	      당신에게 드리는 마지막 혜택!	1
+        1	  내일 뵐 수 있을지 확인 부탁드...	0
+        2	  도연씨. 잘 지내시죠? 오랜만입...	0
+        3	(광고) AI로 주가를 예측할 수 있다!	1
+     
+     
+        X = df['메일 본문']
+        y = df['스팸 메일 유무']
+        
+    3) Numpy를 이용하여 분리
+      array = np.arange(0,16).reshape((4,4))
+      print(array)
+     
+     
+       [[ 0  1  2  3]
+       [ 4  5  6  7]
+       [ 8  9 10 11]
+       [12 13 14 15]]
+
+       X = array[:, :3]
+       print(X)
+
+       [[ 0  1  2]
+       [ 4  5  6]
+       [ 8  9 10]
+       [12 13 14]]
+
+       y = array[:,3]
+       [3 7 11 15]
+   3. 테스트 데이터 분리하기
+    
+      1) 사이킷 런을 이용하여 분리
+        from sklearn.model_selection import train_test_split
+        x_train,x_test,y_train,y_test = train_test_split(x,y, test_size = 0.2, random_state = 1234)
+        
+        x, y = np.arange(10).reshape((5,2)), range(5)
+        
+        x_train,x_test,y_train,y_test = train_test_split(x,y, test_size = 0.33, random_state = 1234) # 3분의 1만 test데이터로 지정
+     
+      2) 수동으로 분리
+          x, y = np.arange(0,24).reshape((12,2)), range(12)
+          number_of_train = int(len(x) * 0.8)
+          number_of_test = int(len(x) - number_of_train)
+
+          x_test = x[number_of_train:]
+          y_test = y[number_of_train:]
+          x_train = x[:number_of_train]
+          y_train = y[:number_of_train]
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
