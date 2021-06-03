@@ -1,1 +1,145 @@
 1) 다양한 단어의 표현 
+  
+  - 단어의 표현 방법은 Local Representation 방법과 Distributed Representation 방법으로 나뉜다. 국소 표현은 해당 단어 그 자체만 보고, 특정값을 매핑하여 단어를 표현하는 방법, 분산 표현 방법은
+  그 단어를 표현하고자 주변을 참고 하여 단어를 표현 하는 방법.
+  
+  - 예를 들어 puppy(강아지), cute(귀여운), lovely(사랑스러운)라는 단어가 있을 때 각 단어에 1번, 2번, 3번 등과 같은 숫자를 매핑하여 부여한다고 했을 때 이는 국소 표현 방법에 해당
+  반면에 분산 표현 방법은 puppy(강아지)라는 단어 근처에 주로 cute(귀여운), lovely(사랑스러운)이라는 단어가 자주 등장하므로 puppy라는 단어는 cute, lovely한 느낌이다로 단어를 정의한다. 국소 표현은
+  뉘앙스를 표현할 수 없지만 분산 표현 방법은 단어의 뉘앙스를 표현할 수 있게 된다.
+  
+  - 국소 표현 방법(Local Representation)을 이산 표현 (Discrete Representation)이라고도 하며, 분산 표현(Distributed Representation)을 연속 표현(Continuous Representation)이라고도 한다.
+  
+  
+  
+  
+2) Bag of Words(Bow)
+
+  1. Bag of words
+  
+    - 단어들의 순서는 전혀 고려하지 않고, 단어들의 출현 빈도(frequency)에만 집중하는 텍스트 데이터의 수치화 표현 방법. 갖고 있는 텍스트 문서에 있는 단어들을 모두 포함시키고 단어들을 섞는다.
+    특정 단어가 해당 문서 내에서 N번 등장 했다면 특정 단어가 이 가방에 N개 있게 되는데 뒤섞었기 때문에 순서는 중요하지 않다.
+    
+    BoW 제작 과정
+      (1) 각 단어에 고유한 정수 인덱스 부여
+      (2)  각 인덱스의 위치에 단어 토큰의 등장 횟수를 기록한 벡터 생성
+ 
+3) CountVectorizer 클래스로 BoW 생성
+  - 사이킷 런에서는 단어의 빈도를 Count하여 Vector로 만드는 CountVectorizer 클래스 지원.
+  
+  from sklearn.feature_extraction.text import CountVectorizer
+  corpus = ['you know I want your love. because I love you.']
+  vector = CountVectorizer()
+  print(vector.fit_transform(corpus).toarray()) # 코퍼스로부터 각 단어의 빈도 수를 기록
+  print(vector.vocabulary_) # 각 단어의 인덱스가 어떻게 부여되었는지 보여준다.
+  
+  [[1 1 2 1 2 1]]
+  {'you': 4, 'know': 1, 'want': 3, 'your': 5, 'love': 2, 'because': 0}
+  
+  예제 문장에서 you와 love는 두 번씩 언급되었기 때문에 인덱스 2와 인덱스 4에서는 2의 값을 가지며, 그 이외는 1의 값을 가진다. 알파벳 I는 BoW 만드는 과정에서 사라졌는데, CountVectorizer가 
+  길이가 2이상인 문자에 대해서만 토큰으로 인식하기 때문
+  
+  CountVectorizer는 단지 띄어쓰기만을 기준으로 단어를 자르는 낮은 수준의 토큰화를 진행하고 BoW를 만든다.영어의 경우 띄어쓰기만으로 토큰화가 수행되기 때문에 문제 없지만 한국어에 CountVectorizer
+  를 적용하면, 조사등의 이유로 제대로 만들어지지 않음.
+  
+  '물가상승률과'와 '물가상승률은'에서 서로 다른 두 단어로 인식한다.
+  
+4) 불용어 제거한 BoW 만들기
+  - BoW를 만들 때 불용어를 제거하는 일은 자연어 처리의 정확도를 높이기 위해서 선택할 수 있는 전처리 기법
+  - 영어의 BoW를 만들기 위해 사용하는 CountVectorizer는 불용어를 지정하면, 불용어는 제외하고 BoW를 만들 수 있도록 불용어 제거 기능 지원
+  
+   (1) 사용자 정의 불용어 사용
+    from sklearn.feature_extraction.text import CountVectorizer
+    
+    text = ["Family is not an important thing. It`s everything."]
+    vect = CountVectorizer(stop_words = ["the", "a", "an", "is", "not"])
+    print(vect.fit_transfrom(text).toarray())
+    print(vect.vocabulary_)
+    
+    [[1 1 1 1 1]]
+    {'family': 1, 'important': 2, 'thing': 4, 'it': 3, 'everything': 0}
+    
+   (2) CountVectorizer에서 제공하는 자체 불용어 사용
+    from sklearn.feature_extraction.text import CountVectorizer
+    
+    text = ["Family is not an important thing. It`s everything."]
+    vect = CountVectorizer(stop_words = "english")
+    print(vect.fit_transform(text).toarray())
+    print(vect.vocabulary_)
+    
+    [[1 1 1]]
+    {'family': 0, 'important': 1, 'thing': 2}
+    
+    (3) NLTK에서 지원하는 불용어 사용
+    from sklearn.feature_extraction.text import CountVectorizer
+    from nltk.corpus import stopwords
+    
+    text = ["Family is not an important thing. It`s eveything."]
+    sw = stopwords.words("english")
+    vect = CountVectorizer(stop_words = sw)
+    print(vect.fit_transform(text).toarray())
+    print(vect.vocabulary_)
+    
+    [[1 1 1 1]]
+    {'family': 1, 'important': 2, 'thing': 3, 'everything': 0}
+    
+    
+    
+    
+3) 문서 단어 행렬 (Document-Term Matrix, DTM)
+  
+  1. 표기법
+    - 문서 단어 행렬이란 다수의 문서에서 등장하는 각 단어들의 빈도를 행렬로 표현 한 것. 각 문서에 대한 BoW를 하나의 행렬로 만든 것으로, BoW와 다른 표현 방법이 아니라 다수의 BoW 표현을 다수의 문서
+    에 대해 행렬로 표현하기 위한 용어
+  
+  2. 한계
+    1) 희소 표현
+      - 원-핫 벡터는 단어 집합의 크기가 벡터의 차원이 되고 대부분의 값이 0이 된다는 특징이 있다. 이 특징은 공간적 낭비와 계산 리소스를 증가시킬 수 있다는 점에서 원-핫 벡터의 단점이었다. DTM 역
+      시 전체 단어 집합의 크기를 가진다. 가지고 있는 전체 코퍼스가 방대한 데이터라면 문서 벡터의 차원은 수백만의 차원을 가질 수도 있다. 또 많은 문서의 벡터 값들이 0을 가질 수도 있다.
+      
+      - 원-핫 벡터나 DTM과 같은 대부분의 값이 0인 표현을 희소 벡터(sparse vector)또는 희소 행렬(sparse matrix)라고 부르고, 희소 벡터는 많은 양의 저장 공간과 계산을 위한 리소스를 필요로 한다.
+      전처리 통해 단어 집합의 크기를 줄이는 일은 BoW표현을 사용하는 모델에서 중요한 작업
+      
+    2) 단순 빈도 수 기반 접근
+      - 불용어인 the는 어떤 문서에서든 자주 등장하지만 동일하게 the 빈도수가 높은 문서1, 문서2등이 유사한 문서라고 판단할 순 없다.
+      
+      - 각 문서에는 중요한 단어와 불필요한 단어들이 혼재되어 있다. 
+    
+
+
+4) TF-IDF(Term Frequency - Inverse Document Frequency)
+  
+    1.TF-IDF
+      - 단어의 빈도와 역 문서 빈도를 사용하여 DTM내의 각 단어들마다 중요한 정도를 가중치로 주는 방법
+      - TF-IDF는 주로 문서의 유사도를 구하는 작업, 검색 시스템에서 검색 결과의 중요도를 정하는 작업, 문서 내에서 특정 단어의 중요도를 구하는 작업등에 쓰인다.
+      - TF-IDF는 TF와IDF를 곱한 값을 의미 한다. 문서를 d, 단어를 t, 문서의 총 개수를 n이라고 표현할 때
+      
+      (1) tf(d,t) : 특정 문서 d에서의 특정 단어 t의 등장 횟수
+      (2) df(t) : 특정 단어 t가 등장한 문서의 수
+      (3) idf(d,t) : df(t)에 반비례하는 수
+      
+      idf(d,t) = log(n/(1+df(t))
+  
+      - 불용어 등과 같이 자주 쓰이는 단어들은 비교적 자주 쓰이지 않는 단어들보다 수십 배 이상 등장한다.
+      - 자주 쓰이지 않는 단어들 역시도 희귀 단어들과 비교하면 수십배 이상 자주 등장한다. 그렇기에 log를 씌워서 격차를 좁히는 것
+      - TF-IDF는 모든 문서에서 자주 등장하는 단어는 중요도가 낮다고 판단, 특정 문서에만 자주 등장하는 단어는 중요도가 높다고 판단.
+      - TF-IDF 값이 낮으면 중요도가 낮은 것이며, TF-IDF 값이 크면 중요도가 큰 것. 
+      
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
